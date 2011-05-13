@@ -30,21 +30,21 @@ namespace cheeze {
 	typedef detail::base_mat<vec3, 4> mat4x3;
 	typedef detail::base_mat<vec4, 4> mat4x4;
 
-	typedef detail::base_mat<vec2, 2> dmat2; // double
-	typedef detail::base_mat<vec3, 3> dmat3;
-	typedef detail::base_mat<vec4, 4> dmat4;
+	typedef detail::base_mat<dvec2, 2> dmat2; // double
+	typedef detail::base_mat<dvec3, 3> dmat3;
+	typedef detail::base_mat<dvec4, 4> dmat4;
 
-	typedef detail::base_mat<vec2, 2> dmat2x2;
-	typedef detail::base_mat<vec3, 2> dmat2x3;
-	typedef detail::base_mat<vec4, 2> dmat2x4;
+	typedef detail::base_mat<dvec2, 2> dmat2x2;
+	typedef detail::base_mat<dvec3, 2> dmat2x3;
+	typedef detail::base_mat<dvec4, 2> dmat2x4;
 
-	typedef detail::base_mat<vec2, 3> dmat3x2;
-	typedef detail::base_mat<vec3, 3> dmat3x3;
-	typedef detail::base_mat<vec4, 3> dmat3x4;
+	typedef detail::base_mat<dvec2, 3> dmat3x2;
+	typedef detail::base_mat<dvec3, 3> dmat3x3;
+	typedef detail::base_mat<dvec4, 3> dmat3x4;
 
-	typedef detail::base_mat<vec2, 4> dmat4x2;
-	typedef detail::base_mat<vec3, 4> dmat4x3;
-	typedef detail::base_mat<vec4, 4> dmat4x4;
+	typedef detail::base_mat<dvec2, 4> dmat4x2;
+	typedef detail::base_mat<dvec3, 4> dmat4x3;
+	typedef detail::base_mat<dvec4, 4> dmat4x4;
 
 } // namespace cheeze
 
