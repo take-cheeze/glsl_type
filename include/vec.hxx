@@ -4,6 +4,7 @@
 #include <array>
 #include <functional>
 
+#include <boost/lambda/lambda.hpp>
 #include <boost/operators.hpp>
 #include <boost/preprocessor/cat.hpp>
 #include <boost/preprocessor/comparison/less.hpp>
@@ -20,73 +21,99 @@
 #include <boost/range/algorithm/transform.hpp>
 
 
-namespace cheeze {
+/*
+ * - CHEEZE_GLSL_TYPE_NO_FILL_ON_DEFAULT_CONSTRUCTOR
+ */
 
+namespace cheeze {
 	namespace detail {
+		template<class T, std::size_t N>
+		struct array_vec : public std::array<T, N>
+		{
+			typedef T value_type;
+			typedef value_type& reference;
+			typedef value_type const& const_reference;
+
+#ifdef CHEEZE_GLSL_TYPE_NO_FILL_ON_DEFAULT_CONSTRUCTOR
+			array_vec() { boost::fill(*this, value_type(); }
+#else
+			array_vec() {}
+#endif
+
+			template<class SrcT, std::size_t SrcN>
+			array_vec(array_vec<SrcT, SrcN> const& src)
+			{
+				std::copy(this->begin()
+				, this->begin() + std::min(this->size(), src.size())
+				, src.begin());
+			}
+		};
+
 #define PP_className(n) BOOST_PP_CAT(base_vec, n)
 #define PP_member(r, d, i, e) \
-		BOOST_PP_IF(BOOST_PP_LESS(i, d), \
-			value_type const& e() const { return (*this)[i]; } \
-			value_type& e() { return (*this)[i]; } \
-			value_type& e(value_type const& v) { (*this)[i] = v; } \
-		, )
+	BOOST_PP_IF(BOOST_PP_LESS(i, d), \
+		const_reference e() const { return (*this)[i]; } \
+		value_type& e() { return (*this)[i]; } \
+		value_type& e(const_reference v) { (*this)[i] = v; } \
+	, )
 #define PP_initArg(z, i, text) (BOOST_PP_CAT(text, i))
 #define PP_initAssign(z, i, text) (*this)[i] = BOOST_PP_CAT(text, i);
-#define PP_operator(op, func) \
+#define PP_operator(r, data, op) \
 	class_name& operator op(class_name const& x) { \
 		boost::transform(*this, x.begin() \
-		, this->begin(), std::func<value_type>()); \
+		, this->begin(), boost::lambda::_1 op boost::lambda::_2); \
 		return *this; \
 	} \
-	class_name& operator op(value_type const& x) { \
-		boost::for_each(*this, [x](value_type& v) { v op x; }); \
+	class_name& operator op(const_reference x) { \
+		boost::for_each(*this, boost::lambda::_1 op x); \
 		return *this; \
 	}
-#define PP_base_vec(dummy, n, text) \
-		template<class T> \
-		struct PP_className(n) \
-			: public std::array<T, n> \
-			, public boost::addable<PP_className(n)<T>> \
-			, public boost::subtractable<PP_className(n)<T>> \
-			, public boost::multipliable<PP_className(n)<T>> \
-			, public boost::dividable<PP_className(n)<T>> \
-			, public boost::modable<PP_className(n)<T>> \
-			, public boost::addable<PP_className(n)<T>, T> \
-			, public boost::subtractable<PP_className(n)<T>, T> \
-			, public boost::multipliable<PP_className(n)<T>, T> \
-			, public boost::dividable<PP_className(n)<T>, T> \
-			, public boost::modable<PP_className(n)<T>, T> \
-			, public boost::equality_comparable<PP_className(n)<T>, T>\
+#define PP_base_vec(dummy, N, text) \
+	template<class T> \
+	struct PP_className(N) \
+		: public array_vec<T, N> \
+		, public boost::addable<PP_className(N)<T>> \
+		, public boost::subtractable<PP_className(N)<T>> \
+		, public boost::multipliable<PP_className(N)<T>> \
+		, public boost::dividable<PP_className(N)<T>> \
+		, public boost::modable<PP_className(N)<T>> \
+		, public boost::addable<PP_className(N)<T>, T> \
+		, public boost::subtractable<PP_className(N)<T>, T> \
+		, public boost::multipliable<PP_className(N)<T>, T> \
+		, public boost::dividable<PP_className(N)<T>, T> \
+		, public boost::modable<PP_className(N)<T>, T> \
+		, public boost::equality_comparable<PP_className(N)<T>, T> \
+	{ \
+		typedef T value_type; \
+		typedef value_type& reference; \
+		typedef value_type const& const_reference; \
+		typedef PP_className(N)<T> class_name; \
+		 \
+		PP_className(N)() : array_vec<T, N>() {} \
+		PP_className(N)(const_reference v) { boost::fill(*this, v); } \
+		template<class SrcT, std::size_t SrcN> \
+		PP_className(N)(array_vec<SrcT, SrcN> const& src) \
+			: array_vec<T, N>(src) {} \
+		PP_className(N)BOOST_PP_SEQ_TO_TUPLE( \
+			BOOST_PP_REPEAT(N, PP_initArg, const_reference v)) \
 		{ \
-			typedef T value_type; \
-			typedef PP_className(n)<T> class_name; \
-			 \
-			PP_className(n)() { boost::fill(*this, value_type()); } \
-			PP_className(n)(value_type const& v) { boost::fill(*this, v); } \
-			PP_className(n)BOOST_PP_SEQ_TO_TUPLE( \
-				BOOST_PP_REPEAT(n, PP_initArg, value_type const& v)) \
-			{ \
-				BOOST_PP_REPEAT(n, PP_initAssign, v) \
-			} \
-			 \
-			BOOST_PP_SEQ_FOR_EACH_I(PP_member, n, (x)(y)(z)(w)) \
-			BOOST_PP_SEQ_FOR_EACH_I(PP_member, n, (r)(g)(b)(a)) \
-			BOOST_PP_SEQ_FOR_EACH_I(PP_member, n, (s)(t)(p)(q)) \
-			 \
-			class_name& operator =(value_type const& x) { \
-				boost::fill(*this, x); \
-				return *this; \
-			} \
-			bool operator ==(value_type const& x) const { \
-				return boost::count(*this, x) == n; \
-			} \
-			 \
-			PP_operator(+=, plus) \
-			PP_operator(-=, minus) \
-			PP_operator(*=, multiplies) \
-			PP_operator(/=, divides) \
-			PP_operator(%=, modulus) \
-		};
+			BOOST_PP_REPEAT(N, PP_initAssign, v) \
+		} \
+		 \
+		BOOST_PP_SEQ_FOR_EACH_I(PP_member, N, (x)(y)(z)(w)) \
+		BOOST_PP_SEQ_FOR_EACH_I(PP_member, N, (r)(g)(b)(a)) \
+		BOOST_PP_SEQ_FOR_EACH_I(PP_member, N, (s)(t)(p)(q)) \
+		 \
+		class_name& operator =(const_reference x) { \
+			boost::fill(*this, x); \
+			return *this; \
+		} \
+		bool operator ==(const_reference x) const { \
+			return boost::count(*this, x) == this->size(); \
+		} \
+		 \
+		BOOST_PP_SEQ_FOR_EACH(PP_operator, , (+=)(-=)(*=)(/=)(%=)); \
+	};
 
 		BOOST_PP_REPEAT_FROM_TO(2, 5, PP_base_vec, T)
 
@@ -97,7 +124,6 @@ namespace cheeze {
 #undef PP_member
 #undef PP_className
 	} // namespace detail
-
 
 	// typedefs
 #define MACRO_1(r, data, elem) \
@@ -112,7 +138,6 @@ namespace cheeze {
 
 #undef MACRO_2
 #undef MACRO_1
-
 } // namespace cheeze
 
 #endif // _CHEEZE__VECTOR_HXX_
