@@ -26,9 +26,17 @@ namespace cheeze {
 			base_mat() {}
 
 			base_mat(typename value_type::value_type const& x) {
+				boost::fill(*this, value_type::value_type());
 				boost::for_each(boost::irange(0
 					, std::min(this->size(), this->begin()->size()))
 				, (*this)[boost::lambda::_1][boost::lambda::_1] = x);
+			}
+			template<class SrcT, std::size_t SrcN>
+			base_mat(base_mat<SrcT, SrcN> const& x) {
+				boost::fill(*this, value_type());
+				boost::for_each(boost::irange(size_t(0)
+					, std::min(N, SrcN))
+				, (*this)[boost::lambda::_1] = x[boost::lambda::_1]);
 			}
 
 			// operators
