@@ -63,9 +63,17 @@ namespace cheeze {
 				return boost::count(*this, x) == this->size();
 			}
 			template<class SrcT, std::size_t SrcN>
-			base_mat<T, N>& operator *=(base_mat<SrcT, SrcN> const& src)
+			class_name& operator *=(base_mat<SrcT, SrcN> const& src)
 			{
 				BOOST_STATIC_ASSERT(SrcN == value_type::size);
+				boost::fill(*this, value_type());
+				for(auto i : boost::irange(0, class_name::size)) {
+					boost::for_each(boost::irange(0, value_type::size), (*this)[i][boost::lambda::_1] += (*this)[i][boost::lambda::_1] * src[boost::lambda::_1][i]);
+				}
+				return *this;
+			}
+			class_name& operator *=(class_name const& src)
+			{
 				boost::fill(*this, value_type());
 				for(auto i : boost::irange(0, class_name::size)) {
 					boost::for_each(boost::irange(0, value_type::size), (*this)[i][boost::lambda::_1] += (*this)[i][boost::lambda::_1] * src[boost::lambda::_1][i]);
