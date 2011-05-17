@@ -29,14 +29,21 @@ namespace cheeze {
 
 			base_mat() {}
 
-			base_mat(typename value_type::value_type const& x) {
+			explicit base_mat(typename value_type::value_type const& x)
+			{
 				boost::fill(*this, value_type::value_type());
 				std::for_each(this->begin()
 				, this->begin() + std::min(class_name::size, value_type::size)
 				, (*this)[boost::lambda::_1][boost::lambda::_1] = x);
 			}
 			template<class SrcT, std::size_t SrcN>
-			base_mat(base_mat<SrcT, SrcN> const& x) {
+			explicit base_mat(array_vec<SrcT, SrcN> const& src)
+			{
+				boost::fill(*this, src);
+			}
+			template<class SrcT, std::size_t SrcN>
+			base_mat(base_mat<SrcT, SrcN> const& x)
+			{
 				boost::fill(*this, value_type());
 				std::copy(this->begin()
 				, this->begin() + std::min(N, SrcN), x.begin());

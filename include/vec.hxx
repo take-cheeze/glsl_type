@@ -83,7 +83,8 @@ namespace cheeze {
 		typedef PP_className(N)<T> class_name; \
 		 \
 		PP_className(N)() : array_vec<T, N>() {} \
-		PP_className(N)(const_reference v) { boost::fill(*this, v); } \
+		explicit PP_className(N)(const_reference v) \
+		{ boost::fill(*this, v); } \
 		template<class SrcT, std::size_t SrcN> \
 		PP_className(N)(array_vec<SrcT, SrcN> const& src) \
 			: array_vec<T, N>(src) {} \
