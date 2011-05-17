@@ -21,10 +21,6 @@
 #include <boost/range/algorithm/transform.hpp>
 
 
-/*
- * - CHEEZE_GLSL_TYPE_NO_FILL_ON_DEFAULT_CONSTRUCTOR
- */
-
 namespace cheeze {
 	namespace detail {
 		template<class T, std::size_t N>
@@ -33,12 +29,9 @@ namespace cheeze {
 			typedef T value_type;
 			typedef value_type& reference;
 			typedef value_type const& const_reference;
+			enum { size = N };
 
-#ifdef CHEEZE_GLSL_TYPE_NO_FILL_ON_DEFAULT_CONSTRUCTOR
-			array_vec() { boost::fill(*this, value_type(); }
-#else
-			array_vec() {}
-#endif
+			array_vec() { boost::fill(*this, value_type()); }
 
 			template<class SrcT, std::size_t SrcN>
 			array_vec(array_vec<SrcT, SrcN> const& src)

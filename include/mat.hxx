@@ -2,6 +2,7 @@
 #define _CHEEZE__MATRIX_HXX_
 
 #include <boost/range/irange.hpp>
+#include <boost/static_assert.hpp>
 
 #include <vec.hxx>
 
@@ -14,28 +15,31 @@ namespace cheeze {
 			: public std::array<T, N>
 			, public boost::addable<base_mat<T, N>>
 			, public boost::subtractable<base_mat<T, N>>
+			, public boost::multipliable<base_mat<T, N>>
 			, public boost::addable<base_mat<T, N>, T>
 			, public boost::subtractable<base_mat<T, N>, T>
+			, public boost::multipliable<base_mat<T, N>, T>
 			, public boost::equality_comparable<base_mat<T, N>, T>
 		{
 			typedef T value_type;
 			typedef value_type& reference;
 			typedef value_type const& const_reference;
 			typedef base_mat<value_type, N> class_name;
+			enum { size = N };
 
 			base_mat() {}
 
 			base_mat(typename value_type::value_type const& x) {
 				boost::fill(*this, value_type::value_type());
-				boost::for_each(boost::irange(0
-					, std::min(this->size(), this->begin()->size()))
+				std::for_each(this->begin()
+				, this->begin() + std::min(class_name::size, value_type::size)
 				, (*this)[boost::lambda::_1][boost::lambda::_1] = x);
 			}
 			template<class SrcT, std::size_t SrcN>
 			base_mat(base_mat<SrcT, SrcN> const& x) {
 				boost::fill(*this, value_type());
-				boost::copy(boost::irange(size_t(0)
-				, std::min(N, SrcN)), x.begin());
+				std::copy(this->begin()
+				, this->begin() + std::min(N, SrcN), x.begin());
 			}
 
 			// operators
@@ -54,8 +58,19 @@ namespace cheeze {
 
 #undef PP_operator
 
-			bool operator ==(const_reference x) const {
+			bool operator ==(const_reference x) const
+			{
 				return boost::count(*this, x) == this->size();
+			}
+			template<class SrcT, std::size_t SrcN>
+			base_mat<T, N>& operator *=(base_mat<SrcT, SrcN> const& src)
+			{
+				BOOST_STATIC_ASSERT(SrcN == value_type::size);
+				boost::fill(*this, value_type());
+				for(auto i : boost::irange(0, class_name::size)) {
+					boost::for_each(boost::irange(0, value_type::size), (*this)[i][boost::lambda::_1] += (*this)[i][boost::lambda::_1] * src[boost::lambda::_1][i]);
+				}
+				return *this;
 			}
 		};
 	}
