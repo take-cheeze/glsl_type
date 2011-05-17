@@ -34,9 +34,8 @@ namespace cheeze {
 			template<class SrcT, std::size_t SrcN>
 			base_mat(base_mat<SrcT, SrcN> const& x) {
 				boost::fill(*this, value_type());
-				boost::for_each(boost::irange(size_t(0)
-					, std::min(N, SrcN))
-				, (*this)[boost::lambda::_1] = x[boost::lambda::_1]);
+				boost::copy(boost::irange(size_t(0)
+				, std::min(N, SrcN)), x.begin());
 			}
 
 			// operators
