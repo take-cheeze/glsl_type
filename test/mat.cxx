@@ -5,5 +5,6 @@
 
 TEST(vec, plus)
 {
-	cheeze::mat4 const m = {};
+	cheeze::mat4 m;
+	m *= m;
 }

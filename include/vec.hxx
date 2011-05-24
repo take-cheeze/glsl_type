@@ -1,9 +1,7 @@
 #ifndef _CHEEZE__VECTOR_HXX_
 #define _CHEEZE__VECTOR_HXX_
 
-#include <array>
-#include <functional>
-
+#include <boost/array.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <boost/operators.hpp>
 #include <boost/preprocessor/cat.hpp>
@@ -24,12 +22,12 @@
 namespace cheeze {
 	namespace detail {
 		template<class T, std::size_t N>
-		struct array_vec : public std::array<T, N>
+		struct array_vec : public boost::array<T, N>
 		{
 			typedef T value_type;
 			typedef value_type& reference;
 			typedef value_type const& const_reference;
-			enum { size = N };
+			static int const size = N;
 
 			array_vec() { boost::fill(*this, value_type()); }
 
@@ -65,11 +63,11 @@ namespace cheeze {
 	template<class T> \
 	struct PP_className(N) \
 		: public array_vec<T, N> \
-		, public boost::addable<PP_className(N)<T>> \
-		, public boost::subtractable<PP_className(N)<T>> \
-		, public boost::multipliable<PP_className(N)<T>> \
-		, public boost::dividable<PP_className(N)<T>> \
-		, public boost::modable<PP_className(N)<T>> \
+		, public boost::addable<PP_className(N)<T> > \
+		, public boost::subtractable<PP_className(N)<T> > \
+		, public boost::multipliable<PP_className(N)<T> > \
+		, public boost::dividable<PP_className(N)<T> > \
+		, public boost::modable<PP_className(N)<T> > \
 		, public boost::addable<PP_className(N)<T>, T> \
 		, public boost::subtractable<PP_className(N)<T>, T> \
 		, public boost::multipliable<PP_className(N)<T>, T> \

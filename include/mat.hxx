@@ -1,6 +1,7 @@
 #ifndef _CHEEZE__MATRIX_HXX_
 #define _CHEEZE__MATRIX_HXX_
 
+#include <boost/foreach.hpp>
 #include <boost/range/irange.hpp>
 #include <boost/static_assert.hpp>
 
@@ -8,14 +9,13 @@
 
 
 namespace cheeze {
-
 	namespace detail {
 		template<class T, std::size_t N>
 		struct base_mat
-			: public std::array<T, N>
-			, public boost::addable<base_mat<T, N>>
-			, public boost::subtractable<base_mat<T, N>>
-			, public boost::multipliable<base_mat<T, N>>
+			: public boost::array<T, N>
+			, public boost::addable<base_mat<T, N> >
+			, public boost::subtractable<base_mat<T, N> >
+			, public boost::multipliable<base_mat<T, N> >
 			, public boost::addable<base_mat<T, N>, T>
 			, public boost::subtractable<base_mat<T, N>, T>
 			, public boost::multipliable<base_mat<T, N>, T>
@@ -25,7 +25,7 @@ namespace cheeze {
 			typedef value_type& reference;
 			typedef value_type const& const_reference;
 			typedef base_mat<value_type, N> class_name;
-			enum { size = N };
+			static int const size = N;
 
 			base_mat() {}
 
@@ -74,16 +74,19 @@ namespace cheeze {
 			{
 				BOOST_STATIC_ASSERT(SrcN == value_type::size);
 				boost::fill(*this, value_type());
-				for(auto i : boost::irange(0, class_name::size)) {
+				BOOST_FOREACH(int const i, boost::irange(0, class_name::size)) {
 					boost::for_each(boost::irange(0, value_type::size), (*this)[i][boost::lambda::_1] += (*this)[i][boost::lambda::_1] * src[boost::lambda::_1][i]);
 				}
 				return *this;
 			}
 			class_name& operator *=(class_name const& src)
 			{
+				using boost::lambda::_1;
 				boost::fill(*this, value_type());
-				for(auto i : boost::irange(0, class_name::size)) {
-					boost::for_each(boost::irange(0, value_type::size), (*this)[i][boost::lambda::_1] += (*this)[i][boost::lambda::_1] * src[boost::lambda::_1][i]);
+				BOOST_FOREACH(int const i, boost::irange(0, class_name::size)) {
+					BOOST_FOREACH(int const j, boost::irange(0, value_type::size)) {
+						(*this)[i][j] += (*this)[i][j] * src[j][i];
+					}
 				}
 				return *this;
 			}
