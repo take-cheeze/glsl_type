@@ -22,13 +22,9 @@ foreach(i ${tests})
   add_executable(test_${exe} ${i})
   target_link_libraries(test_${exe}
     ${GTEST_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-  add_test(NAME ${exe} COMMAND ${EXECUTABLE_OUTPUT_PATH}/test_${exe})
+  add_test(
+    NAME ${exe}
+    COMMAND ${EXECUTABLE_OUTPUT_PATH}/test_${exe}
+      --gtest_output=xml:${EXECUTABLE_OUTPUT_PATH}/test_${target}.xml
+      --gtest_color=yes)
 endforeach()
-
-# OpenGL
-#aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/example examples)
-#foreach(i ${examples})
-#  string(REGEX REPLACE ".*/\([a-z_]*\).cxx" "\\1" exe ${i})
-#  add_executable(example_${exe} MACOSX_BUNDLE ${i})
-#  target_link_libraries(example_${exe} ${GLUT_LIBRARIES})
-#endforeach()
